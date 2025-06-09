@@ -36,7 +36,7 @@ import path from "path";
 
 import {execSync} from "child_process"
 
-const PACKAGE = require(path.join(execSync('npm root', {cwd: process.cwd()}).toString().trim(), "..", 'package.json'));
+const PACKAGE = require(path.resolve(execSync('npm root', {cwd: __dirname }).toString().trim(), "..", 'package.json'));
 
 program
   .command("swagger")
