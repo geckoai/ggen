@@ -19,7 +19,7 @@ export class PathParameterSchema20 {
 
   public get path() {
     if (this.$ref) {
-      return `/definitions/` + this.generic?.toString();
+      return `/definitions/` + this.generic?.name;
     }
 
     return null;
