@@ -46,7 +46,7 @@ export class ConfService {
 
   public static createName(name: string) {
     let isFirst = true;
-    return name.split(/[\/\-]/g).map(x => {
+    return name.split(/[\/\-_]/g).map(x => {
       x = x.trim();
       let isParams = false;
       if (/^\{/.test(x)) {

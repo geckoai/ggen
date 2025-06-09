@@ -1,5 +1,6 @@
 import { Typed } from "@geckoai/class-transformer";
 import { ClassGeneric } from "../../ClassGeneric";
+import {PathParameterSchema20} from "../v2/PathParameterSchema20";
 
 export class PropertyItems {
   @Typed()
@@ -13,6 +14,9 @@ export class PropertyItems {
 
   @Typed()
   public $ref?: string;
+
+  @Typed(PathParameterSchema20)
+  public additionalProperties: PathParameterSchema20;
 
   /**
    * only v2
@@ -28,7 +32,6 @@ export class PropertyItems {
     } else if (/#\/definitions\//.test(name)) {
       return ClassGeneric.parse(name.replace(/#\/definitions\//, ""));
     }
-
     return ClassGeneric.parse(name);
   }
 
@@ -41,6 +44,10 @@ export class PropertyItems {
 
     if (this.$ref) {
       return PropertyItems.parseGeneric(this.$ref);
+    }
+
+    if (this.additionalProperties) {
+      return  PropertyItems.parseGeneric(this.additionalProperties.$ref)
     }
 
     return null;
