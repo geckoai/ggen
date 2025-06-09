@@ -159,12 +159,12 @@ export class PathClassParser {
 
       if (typedPropertyDecorators?.length) {
         const importDeclaration = this.sourceFile.getImportDeclaration(
-          "@geckoai/class-transformer",
+          "@quick-toolkit/class-transformer",
         );
 
         if (!importDeclaration) {
           this.sourceFile.addImportDeclaration({
-            moduleSpecifier: "@geckoai/class-transformer",
+            moduleSpecifier: "@quick-toolkit/class-transformer",
             namedImports: Array.from(
               new Set<string>(
                 typedPropertyDecorators.map<string>(
@@ -188,11 +188,11 @@ export class PathClassParser {
 
       if (apiPropertyDecorators?.length || decorators.length) {
         const importDeclaration =
-          this.sourceFile.getImportDeclaration("@geckoai/http");
+          this.sourceFile.getImportDeclaration("@quick-toolkit/http");
 
         if (!importDeclaration) {
           this.sourceFile.addImportDeclaration({
-            moduleSpecifier: "@geckoai/http",
+            moduleSpecifier: "@quick-toolkit/http",
             namedImports: Array.from(
               new Set<string>(
                 apiPropertyDecorators

@@ -1,10 +1,10 @@
-# @geckoai/ggen
-The `@geckoai/ggen` package is used to generate TS class files with the openAPI interface.
+# @quick-toolkit/qgen
+The `@quick-toolkit/qgen` package is used to generate TS class files with the openAPI interface.
 
 ## Installing
 
 ```shell
-npm i -g @geckoai/ggen
+npm i -g @quick-toolkit/qgen
 ```
 
 ## Configuration file
@@ -12,8 +12,7 @@ npm i -g @geckoai/ggen
 Create `openapi.config.yaml` or `openapi.config.yml` or `openapi.config.json` in you project root path.
 
 Examples: `openapi.config.yam`
-```yaml
-output: "./apis"
+```yaml 
 projects:
   - name: "ucenter"
     description: "用户中心"
@@ -41,19 +40,11 @@ projects:
 
 ```shell
 # help message
-ggen -h
+qgen -h
 
 # start gen
-ggen swagger
+qgen swagger
 ```
-
-## Documentation
-- [ApiDocs](https://geckoai.github.io/ggen/)
-- [Samples](https://github.com/geckoai/ggen/tree/master/sample)
-- [GitRepository](https://github.com/geckoai/ggen)
-- [OpenAPI30 versions](https://github.com/OAI/OpenAPI-Specification/tree/main/versions)
-- [What Is OpenAPI30?](https://swagger.io/docs/specification/v3_0/about/)
-
 
 ## Issues
 Create [issues](https://github.com/geckoai/ggen/issues) in this repository for anything related to the Class Transformer. When creating issues please search for existing issues to avoid duplicates.

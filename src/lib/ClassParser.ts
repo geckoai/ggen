@@ -148,14 +148,14 @@ export class ClassParser {
 
     if (typedPropertyDecorators?.length) {
       const importDeclaration = this.file.getImportDeclaration(
-        "@geckoai/class-transformer",
+        "@quick-toolkit/class-transformer",
       );
 
       if (!importDeclaration) {
         const filter = typedPropertyDecorators?.filter(x => x?.getName() === "Typed" && x?.getArguments().find(x => x.getText() === "Any")).map(() => "Any");
 
         this.file.addImportDeclaration({
-          moduleSpecifier: "@geckoai/class-transformer",
+          moduleSpecifier: "@quick-toolkit/class-transformer",
           namedImports: Array.from(
             new Set<string>(
               typedPropertyDecorators.map<string>(
@@ -178,11 +178,11 @@ export class ClassParser {
     }
 
     if (apiPropertyDecorators?.length) {
-      const importDeclaration = this.file.getImportDeclaration("@geckoai/http");
+      const importDeclaration = this.file.getImportDeclaration("@quick-toolkit/http");
 
       if (!importDeclaration) {
         this.file.addImportDeclaration({
-          moduleSpecifier: "@geckoai/http",
+          moduleSpecifier: "@quick-toolkit/http",
           namedImports: Array.from(
             new Set<string>(
               apiPropertyDecorators.map<string>((x) => x?.getName() as string),
