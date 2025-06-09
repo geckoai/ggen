@@ -54,9 +54,7 @@ export class PathClassPropertyParser {
       if (
         parameter.in === "body" &&
         parameter.type === undefined &&
-        parameter.schema &&
-        parameter.schema.originalRef &&
-        parameter.schema.generic?.name
+        parameter.schema?.generic
       ) {
         const _extends = classDeclaration.getExtends();
 

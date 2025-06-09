@@ -14,14 +14,19 @@ export class PathParameterSchema20 {
         return ClassGeneric.parse(this.$ref.replace(/#\/definitions\//, ""));
       }
     }
+
+    if (this.originalRef) {
+      if (/#\/definitions\//.test(this.originalRef)) {
+        return ClassGeneric.parse(this.originalRef.replace(/#\/definitions\//, ""));
+      }
+    }
     return null;
   }
 
   public get path() {
-    if (this.$ref) {
+    if (this.generic) {
       return `/definitions/` + this.generic?.name;
     }
-
     return null;
   }
 }
