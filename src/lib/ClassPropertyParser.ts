@@ -21,9 +21,9 @@ export class ClassPropertyParser {
   public checkImport(generic: ClassGeneric) {
     const {classParser} = this;
     const importDeclaration =
-      classParser.file.getImportDeclaration(`.${generic.name}`) ??
+      classParser.file.getImportDeclaration(`./${generic.name}`) ??
       classParser.file.addImportDeclaration({
-        moduleSpecifier: `.${generic.name}`,
+        moduleSpecifier: `./${generic.name}`,
       });
 
     const strings = importDeclaration
