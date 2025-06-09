@@ -32,11 +32,16 @@ import {PathMeta30} from "../lib/open-api/v3/PathMeta30";
 import {Path30} from "../lib/open-api/v3/Path30";
 import {ConfService} from "../lib/ConfService";
 import {OpenAPI20} from "../lib/open-api/v2/OpenAPI20";
+import path from "path";
+
+import {execSync} from "child_process"
+
+const PACKAGE = require(path.join(execSync('npm root', {cwd: process.cwd()}).toString().trim(), "..", 'package.json'));
 
 program
   .command("swagger")
   .option("-c, --config <path>", "config file path.")
-  .description("open api generate.")
+  .description("This package is used to generate TS class files with the openAPI interface. \r\nSee docs: https://github.com/geckoai/ggen.git")
   .action(async ({config = "openapi.config.yaml"}) => {
     const {instance} = Core.run();
     const conf = instance.readConfig(config);
@@ -143,8 +148,11 @@ program
     }
   })
 
+
+
+
 program
-  .version("0.0.1")
+  .version(PACKAGE.version)
 
 
 program.parse();

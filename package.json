@@ -1,13 +1,13 @@
 {
   "name": "@geckoai/ggen",
-  "version": "1.0.10",
+  "version": "1.0.11",
 
   "description": "This package is used to generate TS class files with the openAPI interface.",
   "main": "dist/cjs",
   "types": "dist/types",
   "type": "commonjs",
   "bin": {
-    "ggen": "dist/cjs/bin/index.js"
+    "ggen": "dist/cjs/bin/ggen.js"
   },
   "scripts": {
     "build:clean": "rimraf dist && rimraf docs",
@@ -16,8 +16,8 @@
     "build:doc": "typedoc --options ./typedoc.json",
     "release": "yarn build:clean &&  yarn build:cjs  && yarn build:types",
     "test": "mocha -w",
-    "bin": "node ./dist/cjs/bin swagger",
-    "bin:test": "ts-node ./src/bin swagger"
+    "bin": "node ./dist/cjs/bin/ggen swagger -h",
+    "bin:test": "ts-node ./src/bin/ggen swagger"
   },
   "repository": {
     "type": "git",

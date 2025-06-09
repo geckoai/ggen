@@ -26,9 +26,6 @@ import {ConfProject} from "./ConfProject";
  * 配置解析类
  */
 export class Conf {
-  @Typed({required: true})
-  public output: string;
-
   @TypedArray(ConfProject)
   public projects: ConfProject[]
 }
