@@ -152,7 +152,7 @@ export class ClassPropertyParser {
                 name: "Typed",
                 arguments: ["Any"]
               })
-              classParser.checkImportByName(["Any"], "@geckoai/class-transformer")
+              classParser.checkImportByName(["Any"], "@quick-toolkit/class-transformer")
             }
           } else {
             const s = generic.toString();
@@ -172,7 +172,7 @@ export class ClassPropertyParser {
               ).join("|"),
             );
             if (isSelf) {
-              classParser.checkImportByName(['TypeMirror'], '@geckoai/class-transformer');
+              classParser.checkImportByName(['TypeMirror'], '@quick-toolkit/class-transformer');
             }
           }
         } else {
@@ -366,7 +366,7 @@ export class ClassPropertyParser {
         arguments: [isSelf ? `TypeMirror.from(() => ${generic.name})` : generic.name],
       });
       if (isSelf) {
-        this.classParser.checkImportByName(['TypeMirror'], '@geckoai/class-transformer');
+        this.classParser.checkImportByName(['TypeMirror'], '@quick-toolkit/class-transformer');
       }
       this.propertyDeclaration.setType(
         Array.from(new Set(typeList.concat([generic.toString() + "[]"])))
