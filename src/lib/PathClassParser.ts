@@ -174,12 +174,9 @@ export class PathClassParser {
             ),
           });
         } else {
-          const namedImports = importDeclaration
-            .getNamedImports()
-            .map((x) => x.getName());
           typedPropertyDecorators.forEach((x) => {
             const name = x?.getName();
-            if (name && !namedImports.includes(name)) {
+            if (name && !importDeclaration.getNamedImports().map(x => x.getName()).includes(name)) {
               importDeclaration.addNamedImport({name});
             }
           });
@@ -202,27 +199,12 @@ export class PathClassParser {
             ),
           });
         } else {
-          const namedImports = importDeclaration
-            .getNamedImports()
-            .map((x) => x.getName());
-
-          const imports = new Set<string>();
-
           apiPropertyDecorators.forEach((x) => {
             const name = x?.getName();
-            if (name && !namedImports.includes(name)) {
-              imports.add(name);
+            if (name && !importDeclaration.getNamedImports().map(x => x.getName()).includes(name)) {
+              importDeclaration.addNamedImport({name});
             }
           });
-
-          decorators.forEach((name) => {
-            if (!namedImports.includes(name)) {
-              imports.add(name);
-              // importDeclaration.addNamedImport({ name });
-            }
-          });
-
-          imports.forEach((name) => importDeclaration.addNamedImport({name}));
         }
       }
     });
