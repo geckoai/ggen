@@ -66,13 +66,13 @@ export class ClassPropertyParser {
 
     if (this.property.generic) {
       const definition = this.classParser.findDefinition(this.property.generic.toOrigin());
-      if (definition) {
+      if (definition && this.classParser.generic.name !== this.property.generic.name) {
         ClassParser.create(projectService, swagger, definition, fileDir, this.property.generic.name).generate();
         this.checkImport(this.property.generic);
       }
     }
 
-    if (this.property.items?.generic) {
+    if (this.property.items?.generic && this.classParser.generic.name !== this.property.items.generic.name) {
       const definition = this.classParser.findDefinition(this.property.items.generic.toOrigin());
       if (definition) {
         ClassParser.create(projectService, swagger, definition, fileDir, this.property.items.generic.name).generate();
@@ -152,12 +152,14 @@ export class ClassPropertyParser {
                 name: "Typed",
                 arguments: ["Any"]
               })
+              classParser.checkImportByName(["Any"], "@geckoai/class-transformer")
             }
           } else {
             const s = generic.toString();
+            const isSelf =  s === classParser.generic.name;
             this.createDecorator({
               name: "Typed",
-              arguments: [s],
+              arguments: [isSelf ? `TypeMirror.from(() => ${s})` : s],
             });
             propertyDeclaration.setType(
               Array.from(
@@ -169,6 +171,9 @@ export class ClassPropertyParser {
                 ),
               ).join("|"),
             );
+            if (isSelf) {
+              classParser.checkImportByName(['TypeMirror'], '@geckoai/class-transformer');
+            }
           }
         } else {
           propertyDeclaration.setType(
@@ -355,16 +360,14 @@ export class ClassPropertyParser {
     if (index !== undefined && index !== -1) {
       this.propertyDeclaration.setType(GenericType[index]);
     } else {
-      const decorator = this.createDecorator({
+      const isSelf = this.classParser.generic.name === generic.name
+      this.createDecorator({
         name: "TypedArray",
+        arguments: [isSelf ? `TypeMirror.from(() => ${generic.name})` : generic.name],
       });
-
-      const args = decorator.getArguments();
-
-      if (!args?.[0]) {
-        decorator.addArgument(generic.name);
+      if (isSelf) {
+        this.classParser.checkImportByName(['TypeMirror'], '@geckoai/class-transformer');
       }
-
       this.propertyDeclaration.setType(
         Array.from(new Set(typeList.concat([generic.toString() + "[]"])))
           .filter((x) => !/^(any|unknown)$/.test(x))
