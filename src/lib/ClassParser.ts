@@ -174,13 +174,9 @@ export class ClassParser {
           ),
         });
       } else {
-        const namedImports = importDeclaration
-          .getNamedImports()
-          .map((x) => x.getName());
-
         apiPropertyDecorators.forEach((x) => {
           const name = x?.getName();
-          if (name && !namedImports.includes(name)) {
+          if (name && !importDeclaration.getNamedImports().map(x => x.getName()).includes(name)) {
             importDeclaration.addNamedImport({name});
           }
         });
