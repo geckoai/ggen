@@ -1,6 +1,6 @@
 {
   "name": "@geckoai/ggen",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "This package is used to generate TS class files with the openAPI interface.",
   "main": "dist/cjs",
   "types": "dist/types",

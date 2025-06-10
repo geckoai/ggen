@@ -25,35 +25,6 @@ export class ClassParser {
     // Parse Generic
     this.generic = ClassGeneric.parse(name);
 
-    // 创建子类
-    // this.generic.children?.forEach(child => {
-    //   if (child.name === "List") {
-    //     child.children?.forEach(c => {
-    //       let _schema: ComponentsSchema | undefined;
-    //       const name = c.toOrigin();
-    //       if (swagger instanceof OpenAPI20) {
-    //         _schema = swagger.definitions.get(name);
-    //       } else  {
-    //         _schema = swagger.components?.schemas?.get(name);
-    //       }
-    //       if (_schema) {
-    //         ClassParser.create(projectService, swagger, _schema, this.fileDir, c.name).generate();
-    //       }
-    //     })
-    //     return;
-    //   }
-    //   let _schema: ComponentsSchema | undefined;
-    //   const name = child.toOrigin();
-    //   if (swagger instanceof OpenAPI20) {
-    //     _schema = swagger.definitions.get(name);
-    //   } else  {
-    //     _schema = swagger.components?.schemas?.get(name);
-    //   }
-    //   if (_schema) {
-    //     ClassParser.create(projectService, swagger, _schema, this.fileDir, child.name).generate();
-    //   }
-    // })
-
     if (this.generic.name === "List") {
       return;
     }
@@ -128,6 +99,24 @@ export class ClassParser {
     // console.log(this.file.print())
   }
 
+  public checkImportByName(names: string[], moduleSpecifier: string) {
+    const importDeclaration = this.file.getImportDeclaration(
+      moduleSpecifier
+    );
+
+    if (!importDeclaration) {
+      this.file.addImportDeclaration({
+        moduleSpecifier,
+        namedImports: names
+      });
+      return;
+    }
+
+    const namedImports = importDeclaration.getNamedImports().map((x) => x.getName());
+    const filter =  names.filter(x => !namedImports.includes(x));
+    filter.forEach(name => importDeclaration.addNamedImport({name}))
+  }
+
   public checkImport() {
     const apiPropertyDecorators = this.classDeclaration
       ?.getProperties()
@@ -152,28 +141,23 @@ export class ClassParser {
       );
 
       if (!importDeclaration) {
-        const filter = typedPropertyDecorators?.filter(x => x?.getName() === "Typed" && x?.getArguments().find(x => x.getText() === "Any")).map(() => "Any");
-
         this.file.addImportDeclaration({
           moduleSpecifier: "@geckoai/class-transformer",
           namedImports: Array.from(
             new Set<string>(
               typedPropertyDecorators.map<string>(
                 (x) => x?.getName() as string,
-              ).concat(filter)
+              )
             ),
           ),
         });
       } else {
-        const namedImports = importDeclaration
-          .getNamedImports()
-          .map((x) => x.getName());
-        typedPropertyDecorators.forEach((x) => {
-          const name = x?.getName();
-          if (name && !namedImports.includes(name)) {
-            importDeclaration.addNamedImport({name});
+        typedPropertyDecorators.forEach(x => {
+          const dn = x?.getName();
+          if (dn && !importDeclaration.getNamedImports().map(x => x.getName()).includes(dn)) {
+            importDeclaration.addNamedImport({name: dn})
           }
-        });
+        })
       }
     }
 
