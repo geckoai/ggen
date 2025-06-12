@@ -69,7 +69,7 @@ export class ClassPropertyParser {
         name: "Typed",
         arguments: [`Any`]
       })
-      this.classParser.checkImportByName(['Any'], 'quick-toolkit/class-transformer');
+      this.classParser.checkImportByName(['Any'], '@quick-toolkit/class-transformer');
       this.propertyDeclaration.setType(GenericType[0]);
     } else {
       const typeList = this.getTypeList();
@@ -87,14 +87,14 @@ export class ClassPropertyParser {
             arguments: [`TypeMirror.from(() => ${generic.name})`]
           })
         }
-        this.classParser.checkImportByName(['TypeMirror'], 'quick-toolkit/class-transformer');
+        this.classParser.checkImportByName(['TypeMirror'], '@quick-toolkit/class-transformer');
       } else {
         if (type === "Map") {
           this.createDecorator({
             name,
             arguments: [items ? `TypeMirror.createArrayMirror(() => ${generic.name})` : `TypeMirror.from(() => ${generic.name})`]
           })
-          this.classParser.checkImportByName(['TypeMirror'], 'quick-toolkit/class-transformer');
+          this.classParser.checkImportByName(['TypeMirror'], '@quick-toolkit/class-transformer');
         } else {
           this.createDecorator({
             name,
@@ -422,7 +422,7 @@ export class ClassPropertyParser {
         arguments: [isSelf ? `TypeMirror.from(() => ${generic.name})` : generic.name],
       });
       if (isSelf) {
-        this.classParser.checkImportByName(['TypeMirror'], 'quick-toolkit/class-transformer');
+        this.classParser.checkImportByName(['TypeMirror'], '@quick-toolkit/class-transformer');
       }
       this.propertyDeclaration.setType(
         Array.from(new Set(typeList.concat([generic.toString() + "[]"])))
