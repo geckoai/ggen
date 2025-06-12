@@ -1,6 +1,6 @@
 {
   "name": "@quick-toolkit/qgen",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "This package is used to generate TS class files with the openAPI interface.",
   "main": "dist/cjs",
   "types": "dist/types",
