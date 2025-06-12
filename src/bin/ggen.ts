@@ -79,8 +79,12 @@ program
       }
 
       const spinner = ora(`Load file: ${find.OpenAPI.url}`).start();
-      const swagger = await find.load();
-      spinner.stop();
+      let swagger;
+      try {
+        swagger = await find.load()
+      } finally {
+        spinner.stop();
+      }
 
       if (!swagger) {
         console.warn("No path found.")

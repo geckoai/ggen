@@ -1,6 +1,7 @@
 import { Typed, TypedArray } from "@geckoai/class-transformer";
 import { PropertyItems } from "./propertyItems";
 import { ClassGeneric } from "../../ClassGeneric";
+import {AdditionalProperties} from "./AdditionalProperties";
 
 export class Property {
   @Typed()
@@ -17,6 +18,9 @@ export class Property {
 
   @Typed(PropertyItems)
   public items?: PropertyItems;
+
+  @Typed(AdditionalProperties)
+  public additionalProperties?: AdditionalProperties;
 
   /**
    * required 包含的必填字段

@@ -5,6 +5,8 @@ import {GenericType} from "./GenericType";
 import {Helpers} from "./helpers";
 import {ClassGeneric} from "./ClassGeneric";
 
+export const blackList = ["List", "Map", "Object", "Boolean", "Number", "Int", "int", "Set", "object", 'string', "String", 'float', "double"];
+
 export class ClassPropertyParser {
   public readonly propertyDeclaration: PropertyDeclaration;
 
@@ -20,6 +22,7 @@ export class ClassPropertyParser {
 
   public checkImport(generic: ClassGeneric) {
     const {classParser} = this;
+    if (blackList.includes(generic.name)) return;
     const importDeclaration =
       classParser.file.getImportDeclaration(`./${generic.name}`) ??
       classParser.file.addImportDeclaration({
@@ -35,6 +38,88 @@ export class ClassPropertyParser {
         name: generic.name,
       });
     }
+
+    if (generic.children) {
+      generic.children.forEach(child => this.checkImport(child))
+    }
+  }
+
+  public getTypeList(): string[] {
+    const type = this.propertyDeclaration.getType();
+    return type
+      .getText()
+      .split("|")
+      .map((x) => x.trim());
+  }
+
+  public checkIsClassGeneric(generic: ClassGeneric, type: string, items?: boolean): boolean {
+    const isSelf = this.classParser.generic.name === generic.name;
+
+    const list = this.classParser.generic.children?.map(x => x.toString().trim());
+
+    // 判断该节点是否为类的泛型参数
+    if (
+      (type === 'Map' && list?.includes(`Map<string, ${items ? `List<${generic.name}>` : generic.name}`.trim())) ||
+      (type === 'Array' && list?.includes(`List<${generic.name}>`.trim())) ||
+      list?.includes(generic.toString().trim())
+    ) {
+      // 泛型移除所有装饰器
+      this.propertyDeclaration.getDecorators().map(x => x.remove())
+      this.createDecorator({
+        name: "Typed",
+        arguments: [`Any`]
+      })
+      this.classParser.checkImportByName(['Any'], '@geckoai/class-transformer');
+      this.propertyDeclaration.setType(GenericType[0]);
+    } else {
+      const typeList = this.getTypeList();
+      const name = `Typed${type}`
+
+      if (isSelf) {
+        if (type === "Map" && items) {
+          this.createDecorator({
+            name,
+            arguments: [`TypeMirror.createArrayMirror(() => ${generic.name})`]
+          })
+        } else {
+          this.createDecorator({
+            name,
+            arguments: [`TypeMirror.from(() => ${generic.name})`]
+          })
+        }
+        this.classParser.checkImportByName(['TypeMirror'], '@geckoai/class-transformer');
+      } else {
+        if (type === "Map") {
+          this.createDecorator({
+            name,
+            arguments: [items ? `TypeMirror.createArrayMirror(() => ${generic.name})` : `TypeMirror.from(() => ${generic.name})`]
+          })
+          this.classParser.checkImportByName(['TypeMirror'], '@geckoai/class-transformer');
+        } else {
+          this.createDecorator({
+            name,
+            arguments: [generic.name]
+          })
+        }
+      }
+      const elementName = items ? `${generic.name}[]` : generic.name;
+      const typeName = type === 'Map' ? 'Map<string, ${elementName}>' : elementName
+      this.propertyDeclaration.setType(
+        Array.from(
+          new Set(
+            typeList
+              .concat([typeName])
+              .filter(Boolean)
+              .filter((x) => !/^(any|unknown)$/.test(x)),
+          ),
+        ).join("|"),
+      );
+
+      if (!isSelf) {
+        this.checkImport(generic);
+      }
+    }
+    return isSelf;
   }
 
   public toProperty() {
@@ -64,22 +149,6 @@ export class ClassPropertyParser {
       propertyDeclaration.setHasQuestionToken(true);
     }
 
-    if (this.property.generic) {
-      const definition = this.classParser.findDefinition(this.property.generic.toOrigin());
-      if (definition && this.classParser.generic.name !== this.property.generic.name) {
-        ClassParser.create(projectService, swagger, definition, fileDir, this.property.generic.name).generate();
-        this.checkImport(this.property.generic);
-      }
-    }
-
-    if (this.property.items?.generic && this.classParser.generic.name !== this.property.items.generic.name) {
-      const definition = this.classParser.findDefinition(this.property.items.generic.toOrigin());
-      if (definition) {
-        ClassParser.create(projectService, swagger, definition, fileDir, this.property.items.generic.name).generate();
-        this.checkImport(this.property.items.generic);
-      }
-    }
-
     // JS DOC
     if (this.property.description) {
       const find = propertyDeclaration
@@ -93,95 +162,82 @@ export class ClassPropertyParser {
       }
     }
 
-    const type = propertyDeclaration.getType();
-
-    const typeList = type
-      .getText()
-      .split("|")
-      .map((x) => x.trim());
-
     // 如果是泛型参数 则跳过处理1
-    switch (this.property.type) {
-      case "object":
-        propertyDeclaration.setType(
-          Array.from(new Set(typeList.concat(["object"])))
-            .filter(Boolean)
-            .filter((x) => !/^(any|unknown)$/.test(x))
-            .join("|"),
-        );
-        break;
-      case "boolean":
-        propertyDeclaration.setType(
-          Array.from(new Set(typeList.concat(["boolean"])))
-            .filter(Boolean)
-            .filter((x) => !/^(any|unknown)$/.test(x))
-            .join("|"),
-        );
-        break;
-      case "string":
-        this.string(typeList);
-        break;
-      case "number":
-      case "integer":
-        this.number(typeList);
-        break;
-      case "array":
-        this.array(typeList);
-        break;
-      default:
-        const generic = this.property.generic;
-        if (generic) {
-          if (this.classParser.generic.children) {
-            const i = this.classParser.generic.children.findIndex(
-              (x) => x.name === generic.name,
-            );
-            if (GenericType[i]) {
-              propertyDeclaration.setType(
-                Array.from(
-                  new Set(
-                    typeList
-                      .concat([GenericType[i]])
-                      .filter(Boolean)
-                      .filter((x) => !/^(any|unknown)$/.test(x)),
-                  ),
-                ).join("|"),
-              );
-              this.propertyDeclaration.getDecorator("ApiProperty")?.remove();
-              this.propertyDeclaration.getDecorator("Typed")?.remove();
-              this.createDecorator({
-                name: "Typed",
-                arguments: ["Any"]
-              })
-              classParser.checkImportByName(["Any"], "@quick-toolkit/class-transformer")
-            }
-          } else {
-            const s = generic.toString();
-            const isSelf =  s === classParser.generic.name;
-            this.createDecorator({
-              name: "Typed",
-              arguments: [isSelf ? `TypeMirror.from(() => ${s})` : s],
-            });
-            propertyDeclaration.setType(
-              Array.from(
-                new Set(
-                  typeList
-                    .concat([s])
-                    .filter(Boolean)
-                    .filter((x) => !/^(any|unknown)$/.test(x)),
-                ),
-              ).join("|"),
-            );
-            if (isSelf) {
-              classParser.checkImportByName(['TypeMirror'], '@quick-toolkit/class-transformer');
-            }
-          }
-        } else {
+    if (!this.property.generic && !this.property.items?.generic && !this.property?.additionalProperties?.generic && !this.property?.additionalProperties?.items?.generic) {
+      const typeList = this.getTypeList();
+
+      switch (this.property.type) {
+        case "object":
+          propertyDeclaration.setType(
+            Array.from(new Set(typeList.concat(["object"])))
+              .filter(Boolean)
+              .filter((x) => !/^(any|unknown)$/.test(x))
+              .join("|"),
+          );
+          break;
+        case "boolean":
+          propertyDeclaration.setType(
+            Array.from(new Set(typeList.concat(["boolean"])))
+              .filter(Boolean)
+              .filter((x) => !/^(any|unknown)$/.test(x))
+              .join("|"),
+          );
+          break;
+        case "string":
+          this.string(typeList);
+          break;
+        case "number":
+        case "integer":
+          this.number(typeList);
+          break;
+        case "array":
+          this.array(typeList);
+          break;
+        default:
           propertyDeclaration.setType(
             Array.from(new Set(typeList.concat(["unknown"])))
               .filter(Boolean)
               .join("|"),
           );
+      }
+    }
+
+
+    if (this.property.generic) {
+      if (!this.checkIsClassGeneric(this.property.generic, ''))  {
+        const definition = this.classParser.findDefinition(this.property.generic.toOrigin());
+        if (definition) {
+          ClassParser.create(projectService, swagger, definition, fileDir, this.property.generic.toOrigin()).generate();
         }
+      }
+    }
+
+    if (this.property.items?.generic) {
+      if (!this.checkIsClassGeneric(this.property.items.generic, 'Array', true)) {
+        const definition = this.classParser.findDefinition(this.property.items.generic.toOrigin());
+        if (definition) {
+          ClassParser.create(projectService, swagger, definition, fileDir, this.property.items.generic.toOrigin()).generate();
+        }
+      }
+    }
+
+    if (this.property.additionalProperties) {
+      if (this.property.additionalProperties.generic) {
+        if (!this.checkIsClassGeneric(this.property.additionalProperties.generic, 'Map')) {
+          const definition = this.classParser.findDefinition(this.property.additionalProperties.generic.toOrigin());
+          if (definition) {
+            ClassParser.create(projectService, swagger, definition, fileDir, this.property.additionalProperties.generic.toOrigin()).generate();
+          }
+        }
+
+      } else if (this.property.additionalProperties.items?.generic) {
+        if (!this.checkIsClassGeneric(this.property.additionalProperties.items.generic, 'Map', true)) {
+          const definition = this.classParser.findDefinition(this.property.additionalProperties.items.generic.toOrigin());
+          if (definition) {
+            ClassParser.create(projectService, swagger, definition, fileDir, this.property.additionalProperties.items.generic.toOrigin()).generate();
+          }
+        }
+      }
     }
 
     propertyDeclaration.setScope(Scope.Public);
@@ -366,7 +422,7 @@ export class ClassPropertyParser {
         arguments: [isSelf ? `TypeMirror.from(() => ${generic.name})` : generic.name],
       });
       if (isSelf) {
-        this.classParser.checkImportByName(['TypeMirror'], '@quick-toolkit/class-transformer');
+        this.classParser.checkImportByName(['TypeMirror'], '@geckoai/class-transformer');
       }
       this.propertyDeclaration.setType(
         Array.from(new Set(typeList.concat([generic.toString() + "[]"])))

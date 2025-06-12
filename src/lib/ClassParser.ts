@@ -2,7 +2,7 @@ import {ClassDeclaration, SourceFile} from "ts-morph";
 import {ComponentsSchema} from "./open-api/common/ComponentsSchema";
 import {ClassGeneric} from "./ClassGeneric";
 import {GenericType} from "./GenericType";
-import {ClassPropertyParser} from "./ClassPropertyParser";
+import {blackList, ClassPropertyParser} from "./ClassPropertyParser";
 import {ProjectService} from "./providers/ProjectService";
 import path from "path";
 import {OpenAPI20} from "./open-api/v2/OpenAPI20";
@@ -25,9 +25,7 @@ export class ClassParser {
     // Parse Generic
     this.generic = ClassGeneric.parse(name);
 
-    if (this.generic.name === "List") {
-      return;
-    }
+    if (blackList.includes(this.generic.name)) return;
 
     // Create Source File
     this.file = projectService.createSourceFile(
@@ -96,7 +94,6 @@ export class ClassParser {
   public generate() {
     this.createClassDeclaration();
     this.checkImport();
-    // console.log(this.file.print())
   }
 
   public checkImportByName(names: string[], moduleSpecifier: string) {
@@ -115,6 +112,18 @@ export class ClassParser {
     const namedImports = importDeclaration.getNamedImports().map((x) => x.getName());
     const filter =  names.filter(x => !namedImports.includes(x));
     filter.forEach(name => importDeclaration.addNamedImport({name}))
+  }
+
+  public removeImportByName(names: string[], moduleSpecifier: string) {
+    const importDeclaration = this.file.getImportDeclaration(
+      moduleSpecifier
+    );
+
+    importDeclaration?.getNamedImports().find(x => {
+      if (names.includes(x.getName())) {
+        x.remove();
+      }
+    })
   }
 
   public checkImport() {
